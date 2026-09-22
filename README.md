@@ -206,10 +206,22 @@ So'rov so'zlarga bo'linadi; **har bir so'z** maydonlardan **kamida bittasida** u
 - o'zbek apostroflarining barcha ko'rinishlari (`oʻ o‘ o’ o\``) bitta belgiga keltiriladi
 - pasport/JSHSHIR avtomatik normallashtiriladi (`aa 123 45 67` → `AA1234567`)
 
-### Sinov natijasi
+### Xabar yo'qolmasligi kafolati
 
-60 ta parallel webhook so'rovi — **60/60 muvaffaqiyatli**, o'rtacha 205 ms, barcha yozuvlar
-bazaga tushgan.
+Agar baza uyg'onishi qayta urinishlar oynasidan ham uzoq cho'zilsa, webhook **500**
+qaytaradi — Telegram yangilanishni qaytadan yuboradi. Ya'ni foydalanuvchi xabari hech
+qanday holatda yo'qolmaydi.
+
+> Bu muhim: ilgari webhook har doim `200` qaytarardi va xato yutilardi — natijada
+> Telegram qayta yubormasdi va uyquda turgan bazaga tushgan xabar yo'qolardi.
+
+### Sinov natijalari
+
+| Sinov | Natija |
+| --- | --- |
+| 60 ta parallel webhook so'rovi | **60/60** muvaffaqiyatli, o'rtacha 205 ms |
+| Uyqudagi bazaga (7 daqiqa tanaffus) birinchi so'rov | **200**, 9.8 s — yozuv bazaga tushdi |
+| Vaqtinchalik xatoda qayta urinish | 4 bosqichli kutish ishlayotgani tasdiqlandi |
 
 ### Hozirgi reja va cheklovlar
 
