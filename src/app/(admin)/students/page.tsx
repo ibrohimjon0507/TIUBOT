@@ -2,15 +2,16 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { Alert, Badge, Card, EmptyState, PageHeader, Pagination } from "@/components/ui";
 import { FilterSelect, SearchInput } from "@/components/client";
+import type { Prisma } from "@prisma/client";
 import {
   STATUS_ADMIN_LABELS,
   STATUS_COLORS,
   STUDENT_STATUSES,
   formatMoney,
-  normalizePassport,
   parseDebtSubjects,
   type StudentStatus,
 } from "@/lib/constants";
+import { studentSearchWhere } from "@/lib/search";
 
 export const metadata = { title: "Talabalar" };
 export const dynamic = "force-dynamic";
@@ -29,20 +30,11 @@ export default async function StudentsPage({
   const course = params.course ?? "";
   const page = Math.max(1, Number(params.page) || 1);
 
-  const where = {
+  const where: Prisma.StudentWhereInput = {
     ...(status ? { status } : {}),
     ...(facultyId ? { facultyId } : {}),
     ...(course ? { course: Number(course) } : {}),
-    ...(q
-      ? {
-          OR: [
-            { fullName: { contains: q } },
-            { passportSeries: { contains: normalizePassport(q) } },
-            { groupName: { contains: q } },
-            { program: { contains: q } },
-          ],
-        }
-      : {}),
+    ...(studentSearchWhere(q) ?? {}),
   };
 
   const [students, total, faculties] = await Promise.all([

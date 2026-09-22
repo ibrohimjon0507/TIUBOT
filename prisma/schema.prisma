@@ -54,6 +54,10 @@ model Student {
   @@index([groupName])
   @@index([facultyId])
   @@index([status])
+  @@index([isActive, status])
+  @@index([isActive, facultyId])
+  @@index([course])
+  @@index([createdAt])
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -142,6 +146,8 @@ model StaffMessage {
   @@index([botUserId])
   @@index([groupMessageId])
   @@index([createdAt])
+  @@index([direction, isRead])
+  @@index([botUserId, staffId, createdAt])
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -180,6 +186,7 @@ model Faq {
   updatedAt DateTime @updatedAt
 
   @@index([categoryId])
+  @@index([isActive, sort])
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -250,6 +257,9 @@ model BotUser {
 
   @@index([studentId])
   @@index([isVerified])
+  @@index([lastSeenAt])
+  @@index([isBlocked])
+  @@index([lang])
 }
 
 model ActivityLog {
@@ -263,6 +273,8 @@ model ActivityLog {
 
   @@index([action])
   @@index([createdAt])
+  @@index([botUserId, action, createdAt])
+  @@index([action, createdAt])
 }
 
 // Pasport topilmaganda — mas'ul xodimga so'rov
@@ -283,6 +295,7 @@ model SupportTicket {
   updatedAt DateTime @updatedAt
 
   @@index([status])
+  @@index([createdAt])
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -335,6 +348,7 @@ model MenuButton {
   updatedAt DateTime @updatedAt
 
   @@index([row, sort])
+  @@index([isActive, row, sort])
 }
 
 // Bot matnlari — admin paneldan tahrirlanadi

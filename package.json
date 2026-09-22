@@ -12,8 +12,9 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "setup": "prisma db push && tsx prisma/seed.ts",
-    "tunnel": "cloudflared tunnel --url http://localhost:3000"
+    "setup": "prisma db push && prisma db execute --file prisma/search-indexes.sql --schema prisma/schema.prisma && tsx prisma/seed.ts",
+    "tunnel": "cloudflared tunnel --url http://localhost:3000",
+    "db:search-indexes": "prisma db execute --file prisma/search-indexes.sql --schema prisma/schema.prisma"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

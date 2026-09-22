@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { Badge, Card, EmptyState, PageHeader, Pagination, StatCard } from "@/components/ui";
 import { FilterSelect, SearchInput, SubmitButton } from "@/components/client";
 import { resetVerificationAction, toggleBlockAction } from "@/app/actions/users";
+import type { Prisma } from "@prisma/client";
+import { botUserSearchWhere } from "@/lib/search";
 
 export const metadata = { title: "Bot foydalanuvchilari" };
 export const dynamic = "force-dynamic";
@@ -20,22 +22,12 @@ export default async function BotUsersPage({
   const lang = params.lang ?? "";
   const page = Math.max(1, Number(params.page) || 1);
 
-  const where = {
+  const where: Prisma.BotUserWhereInput = {
     ...(state === "verified" ? { isVerified: true } : {}),
     ...(state === "unverified" ? { isVerified: false } : {}),
     ...(state === "blocked" ? { isBlocked: true } : {}),
     ...(lang ? { lang } : {}),
-    ...(q
-      ? {
-          OR: [
-            { username: { contains: q } },
-            { firstName: { contains: q } },
-            { lastName: { contains: q } },
-            { telegramId: { contains: q } },
-            { student: { fullName: { contains: q } } },
-          ],
-        }
-      : {}),
+    ...(botUserSearchWhere(q) ?? {}),
   };
 
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
