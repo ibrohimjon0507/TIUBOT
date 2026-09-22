@@ -174,7 +174,7 @@ export function TextEditor({
             </li>
           </ul>
           <p className="mt-3 text-[12px] text-slate-400">
-            Saqlangach o'zgarish botda 30 soniya ichida kuchga kiradi.
+            Saqlangach o'zgarish botda 2 daqiqa ichida kuchga kiradi.
           </p>
         </Card>
       </div>

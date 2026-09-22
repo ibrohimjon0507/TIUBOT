@@ -14,7 +14,8 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
 
 type Dict = Record<string, { uz: string; ru: string; en: string }>;
 
-const CACHE_TTL_MS = 30_000;
+// Bot so'rovlari sonini kamaytirish uchun uzoqroq kesh (bepul Neon rejasi uchun muhim)
+const CACHE_TTL_MS = 120_000;
 let cache: { texts: Dict; settings: Record<string, string>; at: number } | null = null;
 
 /** Matnlar + sozlamalarni DB'dan (keshlangan holda) yuklaydi. */

@@ -54,7 +54,7 @@ export type MenuButtonRow = {
   sort: number;
 };
 
-const CACHE_TTL_MS = 20_000;
+const CACHE_TTL_MS = 120_000;
 let cache: { buttons: MenuButtonRow[]; at: number } | null = null;
 
 export async function loadMenuButtons(force = false): Promise<MenuButtonRow[]> {

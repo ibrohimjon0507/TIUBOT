@@ -44,7 +44,7 @@ export async function saveBotTextAction(
 
   invalidateDictionary();
   revalidatePath("/texts");
-  return { ok: "Matn saqlandi. O'zgarish botda 30 soniya ichida kuchga kiradi." };
+  return { ok: "Matn saqlandi. O'zgarish botda 2 daqiqa ichida kuchga kiradi." };
 }
 
 export async function resetBotTextAction(form: FormData) {

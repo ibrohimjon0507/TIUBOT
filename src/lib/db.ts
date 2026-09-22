@@ -35,15 +35,59 @@ function buildDatasourceUrl(): string | undefined {
   }
 }
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+/**
+ * Vaqtinchalik ulanish xatolari — so'rov bajarilmagan, qayta urinish xavfsiz.
+ *   P1001 — serverga yetib bo'lmadi (Neon uyqudan uyg'onmoqda)
+ *   P1017 — server ulanishni yopdi
+ *   P2024 — pool'dan ulanish olish vaqti tugadi
+ */
+const RETRYABLE = new Set(["P1001", "P1017", "P2024"]);
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
+function isRetryable(error: unknown): boolean {
+  const code = (error as { code?: string })?.code;
+  if (code && RETRYABLE.has(code)) return true;
+  const message = (error as Error)?.message ?? "";
+  return message.includes("Can't reach database server");
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function createPrisma() {
+  const base = new PrismaClient({
     datasourceUrl: buildDatasourceUrl(),
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
+
+  /**
+   * Neon bepul rejada 5 daqiqa bo'sh tursa uxlaydi va uyg'onishi 5–20 soniya oladi.
+   * Shu paytga to'g'ri kelgan birinchi so'rov yiqilmasligi uchun avtomatik
+   * qayta urinamiz — foydalanuvchi faqat biroz kutadi, xato ko'rmaydi.
+   */
+  return base.$extends({
+    query: {
+      async $allOperations({ args, query }) {
+        let lastError: unknown;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            return await query(args);
+          } catch (error) {
+            if (!isRetryable(error)) throw error;
+            lastError = error;
+            if (attempt < 2) await sleep(1000 * (attempt + 1));
+          }
+        }
+        throw lastError;
+      },
+    },
+  });
+}
+
+type ExtendedPrisma = ReturnType<typeof createPrisma>;
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: ExtendedPrisma | undefined;
+};
+
+export const prisma: ExtendedPrisma = globalForPrisma.prisma ?? createPrisma();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
