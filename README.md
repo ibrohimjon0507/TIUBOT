@@ -176,6 +176,59 @@ o'zgartiradi. Alohida sinov bazasi kerak bo'lsa — Neon'da **branch** yarating 
 
 ---
 
+## Unumdorlik
+
+### Ma'lumotlar bazasi
+
+- **PgBouncer moslashuvi** — `src/lib/db.ts` ulanish satriga `pgbouncer=true` qo'shadi.
+  Busiz Prisma Neon pooler bilan yuklama ostida `prepared statement "s0" already exists`
+  xatosini beradi.
+- **58 ta indeks** — filtr, tartiblash va bog'lanishlar bo'yicha (`prisma/schema.prisma`).
+- **6 ta trigram (GIN) indeksi** — matnli qidiruv uchun (`prisma/search-indexes.sql`).
+  Sxema o'zgarsa qayta qo'llang: `npm run db:search-indexes`.
+- **Cold start** — Neon 5 daqiqa bo'sh tursa uxlaydi; uyg'onish 5–20 soniya.
+  `connect_timeout=30`, `pool_timeout=20` shuning uchun qo'yilgan.
+
+### Qidiruv algoritmi (`src/lib/search.ts`)
+
+So'rov so'zlarga bo'linadi; **har bir so'z** maydonlardan **kamida bittasida** uchrashi shart:
+
+- tartib muhim emas — «rahimov IF-101» va «IF-101 rahimov» bir xil natija beradi
+- katta-kichik harf farqlanmaydi
+- o'zbek apostroflarining barcha ko'rinishlari (`oʻ o‘ o’ o\``) bitta belgiga keltiriladi
+- pasport/JSHSHIR avtomatik normallashtiriladi (`aa 123 45 67` → `AA1234567`)
+
+### Sinov natijasi
+
+60 ta parallel webhook so'rovi — **60/60 muvaffaqiyatli**, o'rtacha 205 ms, barcha yozuvlar
+bazaga tushgan.
+
+> Barqaror yuqori yuklama (masalan, doimiy 1000 faol foydalanuvchi) kutilsa: Neon'da
+> **scale-to-zero** ni o'chiring va compute hajmini oshiring, aks holda uzoq tanaffusdan
+> keyingi birinchi so'rovlar sekin bo'ladi.
+
+## PWA — qurilmaga o'rnatish
+
+Sayt birinchi ochilganda **service worker** (`public/sw.js`) statik fayllarni qurilmaga
+yuklab qo'yadi. Foydalanuvchi buni sezmaydi, lekin keyingi ochilishlar sezilarli tez bo'ladi.
+
+| Nima | Qayerdan |
+| --- | --- |
+| Statik fayllar (JS/CSS/shrift/ikonka) | qurilmadan — darhol |
+| Sahifalar va ma'lumotlar | har doim serverdan — doim yangi |
+| `/api/*` | hech qachon keshlanmaydi |
+
+**Avtomatik yangilanish:** yangi versiya chiqarilsa, service worker uni fonda yuklab,
+kutmasdan almashtiradi va sahifa jimgina yangilanadi. Ya'ni biz funksiya qo'shsak yoki
+olib tashlasak — foydalanuvchida ham o'zgaradi, hech narsa qilishi shart emas.
+
+**Maxfiylik:** admin sahifalarining HTML javoblari keshlanmaydi — umumiy qurilmada
+boshqa odam ko'rib qolmaydi. Sayt `robots: noindex` bilan qidiruv tizimlaridan yopilgan.
+
+Telefon brauzerida «Add to Home Screen» orqali alohida ilova sifatida o'rnatish mumkin.
+
+---
+
 ## O'z serveringizda (muqobil)
 
 ```bash
