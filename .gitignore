@@ -10,3 +10,11 @@ prisma/dev.db*
 next-env.d.ts
 .vercel
 tsconfig.tsbuildinfo
+
+.vercel
+.env*
+
+# Claude Code / agent fayllari
+.agents/
+.claude/
+skills-lock.json

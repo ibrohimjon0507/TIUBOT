@@ -150,7 +150,33 @@ Guruh sozlanmagan bo'lsa ham xabarlar yo'qolmaydi — ular admin panelda ko'rina
 
 ---
 
-## Serverda (production)
+## Joylashtirilgan (production)
+
+| | |
+| --- | --- |
+| **Admin panel** | https://tiubot.vercel.app |
+| **Bot** | [@tiustudentbot](https://t.me/tiustudentbot) |
+| **Baza** | Neon PostgreSQL (Vercel Marketplace) |
+| **Repozitoriya** | https://github.com/ibrohimjon0507/TIUBOT |
+
+`main` ga push qilinsa — Vercel avtomatik qayta deploy qiladi.
+
+Productionda bot **webhook** orqali ishlaydi (`/api/telegram`), polling kerak emas.
+Webhook so'rovlari `TELEGRAM_WEBHOOK_SECRET` bilan tekshiriladi — kalitsiz so'rov 401 qaytaradi.
+
+### Muhim: lokal ishlash va production bitta bazadan foydalanadi
+
+`.env` dagi `DATABASE_URL` Neon'ga qaragan, ya'ni `npm run dev` productiondagi ma'lumotlarni
+o'zgartiradi. Alohida sinov bazasi kerak bo'lsa — Neon'da **branch** yarating va lokal
+`DATABASE_URL` ni o'shanga qarating.
+
+> ⚠️ Webhook o'rnatilgan bo'lsa, lokal `npm run bot` (polling) ishlamaydi — Telegram ikkalasini
+> bir vaqtda qo'llab-quvvatlamaydi. Lokal sinash uchun avval webhook'ni o'chiring
+> (Sozlamalar → «Webhook'ni o'chirish»), sinab bo'lgach qayta o'rnating.
+
+---
+
+## O'z serveringizda (muqobil)
 
 ```bash
 npm run build
