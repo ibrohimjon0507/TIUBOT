@@ -41,14 +41,25 @@ function buildDatasourceUrl(): string | undefined {
  *   P1017 — server ulanishni yopdi
  *   P2024 — pool'dan ulanish olish vaqti tugadi
  */
-const RETRYABLE = new Set(["P1001", "P1017", "P2024"]);
+const RETRYABLE = new Set(["P1001", "P1002", "P1008", "P1017", "P2024"]);
 
-function isRetryable(error: unknown): boolean {
+/** Vaqtinchalik baza xatosimi? (Telegram webhook'ini qayta yuborishi uchun ham kerak) */
+export function isRetryableDbError(error: unknown): boolean {
   const code = (error as { code?: string })?.code;
   if (code && RETRYABLE.has(code)) return true;
+
   const message = (error as Error)?.message ?? "";
-  return message.includes("Can't reach database server");
+  return (
+    message.includes("Can't reach database server") ||
+    message.includes("Timed out fetching a new connection") ||
+    message.includes("Connection terminated") ||
+    message.includes("Server has closed the connection") ||
+    message.includes("ECONNRESET") ||
+    message.includes("ETIMEDOUT")
+  );
 }
+
+const isRetryable = isRetryableDbError;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -65,15 +76,23 @@ function createPrisma() {
    */
   return base.$extends({
     query: {
-      async $allOperations({ args, query }) {
+      async $allOperations({ args, query, model, operation }) {
+        const delays = [500, 1500, 3000, 5000];
         let lastError: unknown;
-        for (let attempt = 0; attempt < 3; attempt += 1) {
+
+        for (let attempt = 0; attempt <= delays.length; attempt += 1) {
           try {
             return await query(args);
           } catch (error) {
             if (!isRetryable(error)) throw error;
             lastError = error;
-            if (attempt < 2) await sleep(1000 * (attempt + 1));
+            if (attempt < delays.length) {
+              console.warn(
+                `[db] ${model ?? "?"}.${operation} vaqtinchalik xato ` +
+                  `(${attempt + 1}-urinish): ${(error as Error).message.split("\n")[0]}`,
+              );
+              await sleep(delays[attempt]);
+            }
           }
         }
         throw lastError;

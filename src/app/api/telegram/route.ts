@@ -1,5 +1,6 @@
 import { webhookCallback } from "grammy";
 import { getBot } from "@/bot/instance";
+import { isRetryableDbError } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -22,8 +23,16 @@ export async function POST(request: Request) {
     const handle = webhookCallback(getBot(), "std/http");
     return await handle(request);
   } catch (error) {
+    // Vaqtinchalik baza xatosi (Neon uyqudan uyg'onmoqda) —
+    // 500 qaytaramiz, Telegram yangilanishni qayta yuboradi va xabar yo'qolmaydi.
+    if (isRetryableDbError(error)) {
+      console.error("[webhook] baza vaqtincha ishlamadi, qayta yuborish so'raladi:", error);
+      return new Response("Database temporarily unavailable", { status: 500 });
+    }
+
+    // Boshqa xatolarda 200 — aks holda Telegram cheksiz qayta urinadi
     console.error("[webhook] xato:", error);
-    return new Response("OK", { status: 200 }); // Telegram qayta yubormasligi uchun
+    return new Response("OK", { status: 200 });
   }
 }
 

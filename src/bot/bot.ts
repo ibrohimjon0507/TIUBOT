@@ -1,6 +1,6 @@
 import { Bot, Context, GrammyError, HttpError, InlineKeyboard } from "grammy";
 import type { BotUser } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { prisma, isRetryableDbError } from "@/lib/db";
 import { getTranslator, type Translator } from "@/lib/i18n";
 import {
   LANGS,
@@ -550,6 +550,15 @@ export function createBot(token: string) {
   bot.catch(async (err) => {
     const ctx = err.ctx as TiuContext;
     const error = err.error;
+
+    // Vaqtinchalik baza xatosi (Neon uyqudan uyg'onmoqda) — xabarni YUTMAYMIZ.
+    // Xatoni yuqoriga uzatamiz, webhook 500 qaytaradi va Telegram
+    // yangilanishni qaytadan yuboradi. Shunda foydalanuvchi xabari yo'qolmaydi.
+    if (isRetryableDbError(error)) {
+      console.error("[bot] Baza vaqtincha ishlamadi — Telegram qayta yuboradi:", error);
+      throw error;
+    }
+
     if (error instanceof GrammyError) {
       console.error("[bot] Telegram API xatosi:", error.description);
     } else if (error instanceof HttpError) {
@@ -557,6 +566,7 @@ export function createBot(token: string) {
     } else {
       console.error("[bot] Kutilmagan xato:", error);
     }
+
     try {
       const tr = ctx?.tr ?? (await getTranslator("uz"));
       await ctx?.reply?.(tr.t("error_generic"), { parse_mode: "HTML" });
