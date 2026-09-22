@@ -186,8 +186,16 @@ o'zgartiradi. Alohida sinov bazasi kerak bo'lsa — Neon'da **branch** yarating 
 - **58 ta indeks** — filtr, tartiblash va bog'lanishlar bo'yicha (`prisma/schema.prisma`).
 - **6 ta trigram (GIN) indeksi** — matnli qidiruv uchun (`prisma/search-indexes.sql`).
   Sxema o'zgarsa qayta qo'llang: `npm run db:search-indexes`.
-- **Cold start** — Neon 5 daqiqa bo'sh tursa uxlaydi; uyg'onish 5–20 soniya.
-  `connect_timeout=30`, `pool_timeout=20` shuning uchun qo'yilgan.
+- **Cold start bilan kurash** — Neon bepul rejada 5 daqiqa bo'sh tursa uxlaydi;
+  uyg'onish 5–20 soniya oladi. Ikki bosqichli himoya:
+  1. `connect_timeout=30`, `pool_timeout=20` — uyg'onishni kutadi
+  2. Prisma kengaytmasi `P1001` / `P1017` / `P2024` xatolarida **3 martagacha
+     qayta uriniladi** (1s, 2s kutish bilan). Bu xatolarda so'rov bajarilmagan,
+     shuning uchun takrorlash xavfsiz — ikki marta yozib qo'yilmaydi.
+
+  Natijada foydalanuvchi xato ko'rmaydi, faqat birinchi so'rov sekinroq bo'ladi.
+- **Kesh** — bot matnlari va menyu tugmalari 2 daqiqa keshlanadi, shu sababli
+  har bir bot so'rovida bazaga kamroq murojaat qilinadi.
 
 ### Qidiruv algoritmi (`src/lib/search.ts`)
 
@@ -203,9 +211,18 @@ So'rov so'zlarga bo'linadi; **har bir so'z** maydonlardan **kamida bittasida** u
 60 ta parallel webhook so'rovi — **60/60 muvaffaqiyatli**, o'rtacha 205 ms, barcha yozuvlar
 bazaga tushgan.
 
-> Barqaror yuqori yuklama (masalan, doimiy 1000 faol foydalanuvchi) kutilsa: Neon'da
-> **scale-to-zero** ni o'chiring va compute hajmini oshiring, aks holda uzoq tanaffusdan
-> keyingi birinchi so'rovlar sekin bo'ladi.
+### Hozirgi reja va cheklovlar
+
+Loyiha **bepul** rejalarda ishlaydi: Vercel Hobby + Neon Free.
+
+| Cheklov | Ta'siri | Yechim (kerak bo'lganda) |
+| --- | --- | --- |
+| Neon 5 daqiqadan keyin uxlaydi | Tanaffusdan keyingi 1-so'rov 5–20 s | Neon pullik rejasida scale-to-zero o'chiriladi |
+| Vercel Hobby cron: 1 marta/kun | Bazani issiq ushlab turib bo'lmaydi | Vercel Pro |
+| Hobby shartlari tijoriy foydalanishga ruxsat bermaydi | Rasmiy ishga tushirishda muammo | Vercel Pro (~$20/oy) |
+
+Barqaror yuqori yuklama (doimiy 1000 faol foydalanuvchi) rejalashtirilsa — yuqoridagi
+ikki obunani yoqish kerak. Bugungi sozlamalar bepul rejada maksimal barqarorlikni beradi.
 
 ## PWA — qurilmaga o'rnatish
 
