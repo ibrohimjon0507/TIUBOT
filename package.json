@@ -1,0 +1,45 @@
+{
+  "name": "tiu-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TIU University Telegram bot + web admin panel",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "bot": "tsx watch src/bot/polling.ts",
+    "build": "prisma generate && next build",
+    "start": "next start -p 3000",
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "setup": "prisma db push && tsx prisma/seed.ts",
+    "tunnel": "cloudflared tunnel --url http://localhost:3000"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "bcryptjs": "^2.4.3",
+    "grammy": "^1.32.0",
+    "jose": "^5.9.6",
+    "next": "^16.3.5",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "server-only": "^0.0.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "cloudflared": "^0.7.3",
+    "dotenv": "^16.4.7",
+    "prisma": "^6.2.1",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
